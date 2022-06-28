@@ -144,11 +144,11 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
     await block_owner_record.save();
     
     let date = new Date();
-    let date_key = blake2AsHex(date.getTime().toString() + ' ' + String(pid) + ' ' + accountid);
+    let date_key = blake2AsHex(date.toLocaleDateString + ' ' + String(pid) + ' ' + accountid);
     let date_owner_record = await AccountOwnerRewardInDay.get(date_key);
     if (date_owner_record == undefined) {
         date_owner_record = new AccountOwnerRewardInDay(date_key);
-        date_owner_record.day = date;
+        date_owner_record.day = date.toLocaleDateString();
         date_owner_record.pid = BigInt(pid.toString());
         date_owner_record.accountid = accountid.toString();
         date_owner_record.balance = int_ownerreward;
@@ -177,7 +177,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
                 return
             }
             let block_key = blake2AsHex(String(blockid) + String(pid) + ' ' + accountid);
-            let date_key = blake2AsHex(date.getTime().toString() + String(pid) + ' ' + accountid);
+            let date_key = blake2AsHex(date.toLocaleDateString + String(pid) + ' ' + accountid);
             let block_staker_record = new AccountStakerInterestInBlock(block_key);
             let staker_interest = int_stakerinterest * parseFloat(record.shares.toString()) / parseFloat(poolrecord.shares.toString());
             block_staker_record.blockid = BigInt(blockid.toString());
@@ -187,7 +187,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
             let day_staker_record = await AccountStakerInterestInDay.get(date_key);
             if (day_staker_record == undefined) {
                 day_staker_record = new AccountStakerInterestInDay(block_key);
-                day_staker_record.day = date;
+                day_staker_record.day = date.toLocaleDateString();
                 day_staker_record.pid = BigInt(pid.toString());
                 day_staker_record.accountid = accountid.toString();
                 day_staker_record.balance = staker_interest;

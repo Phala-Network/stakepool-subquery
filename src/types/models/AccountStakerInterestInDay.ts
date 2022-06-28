@@ -16,7 +16,7 @@ export class AccountStakerInterestInDay implements Entity {
 
     public id: string;
 
-    public day?: Date;
+    public day?: string;
 
     public pid?: bigint;
 
@@ -46,7 +46,7 @@ export class AccountStakerInterestInDay implements Entity {
     }
 
 
-    static async getByDay(day: Date): Promise<AccountStakerInterestInDay[] | undefined>{
+    static async getByDay(day: string): Promise<AccountStakerInterestInDay[] | undefined>{
       
       const records = await store.getByField('AccountStakerInterestInDay', 'day', day);
       return records.map(record => AccountStakerInterestInDay.create(record as AccountStakerInterestInDayProps));

@@ -62,7 +62,7 @@ type AccountOwnerRewardInDay @entity {
 
   id: ID!
 
-  day: Date @index
+  day: String @index
 
   pid: BigInt @index
 
@@ -78,7 +78,7 @@ type AccountStakerInterestInDay @entity {
 
   id: ID!
 
-  day: Date @index
+  day: String @index
 
   pid: BigInt @index
 
