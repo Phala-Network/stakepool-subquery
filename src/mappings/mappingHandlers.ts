@@ -40,7 +40,7 @@ export async function handleContributionShareEvent(event: SubstrateEvent): Promi
     if (poolrecord.poolstakers == undefined) {
         poolrecord.poolstakers = Array(str_accountid);
     }
-    if (!poolrecord.poolstakers[str_accountid]) {
+    if (!poolrecord.poolstakers.includes(str_accountid)) {
         poolrecord.poolstakers.push(str_accountid);
     }
     await poolrecord.save();
@@ -135,27 +135,34 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
     
     let str_accountid = accountid.toString();
     let block_key = blake2AsHex(String(blockid) + ' ' + String(pid) + ' ' + accountid);
-
-    let  block_owner_record = new AccountOwnerRewardInBlock(block_key);
-    block_owner_record.blockid = BigInt(blockid.toString());
-    block_owner_record.pid = BigInt(pid.toString());
-    block_owner_record.accountid = accountid.toString();
-    block_owner_record.balance = int_ownerreward;
-    await block_owner_record.save();
+    let block_owner_record = await AccountOwnerRewardInBlock.get(block_key);
+    if (block_owner_record == undefined) {
+        let block_owner_record1 = new AccountOwnerRewardInBlock(block_key);
+        block_owner_record1.blockid = BigInt(blockid.toString());
+        block_owner_record1.pid = BigInt(pid.toString());
+        block_owner_record1.accountid = accountid.toString();
+        block_owner_record1.balance = int_ownerreward;
+        await block_owner_record1.save();
+    } else {
+        block_owner_record.balance += int_ownerreward;
+        await block_owner_record.save();
+    }
     
     let date = new Date();
     let date_key = blake2AsHex(date.toLocaleDateString + ' ' + String(pid) + ' ' + accountid);
     let date_owner_record = await AccountOwnerRewardInDay.get(date_key);
     if (date_owner_record == undefined) {
-        date_owner_record = new AccountOwnerRewardInDay(date_key);
-        date_owner_record.day = date.toLocaleDateString();
-        date_owner_record.pid = BigInt(pid.toString());
-        date_owner_record.accountid = accountid.toString();
-        date_owner_record.balance = int_ownerreward;
+        let date_owner_record1 = new AccountOwnerRewardInDay(date_key);
+        date_owner_record1.day = date.toLocaleDateString();
+        date_owner_record1.pid = BigInt(pid.toString());
+        date_owner_record1.accountid = accountid.toString();
+        date_owner_record1.balance = int_ownerreward;
+        await date_owner_record1.save();
     } else {
         date_owner_record.balance += int_ownerreward;
+        await date_owner_record.save();
     }
-    await date_owner_record.save();
+    
     
 
     if (poolrecord.shares > 0) {
@@ -178,24 +185,31 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
             }
             let block_key = blake2AsHex(String(blockid) + String(pid) + ' ' + accountid);
             let date_key = blake2AsHex(date.toLocaleDateString + String(pid) + ' ' + accountid);
-            let block_staker_record = new AccountStakerInterestInBlock(block_key);
             let staker_interest = int_stakerinterest * parseFloat(record.shares.toString()) / parseFloat(poolrecord.shares.toString());
-            block_staker_record.blockid = BigInt(blockid.toString());
-            block_staker_record.pid = BigInt(pid.toString());
-            block_staker_record.accountid = accountid.toString();
-            block_staker_record.balance = staker_interest;
+            let block_staker_record = await AccountStakerInterestInBlock.get(block_key);
+            if (block_staker_record == undefined) {
+            let block_staker_record1 = new AccountStakerInterestInBlock(block_key);       
+                block_staker_record1.blockid = BigInt(blockid.toString());
+                block_staker_record1.pid = BigInt(pid.toString());
+                block_staker_record1.accountid = accountid.toString();
+                block_staker_record1.balance = staker_interest;
+                await block_staker_record1.save();
+            } else {
+                block_staker_record.balance += staker_interest;
+                await block_staker_record.save();
+            }
             let day_staker_record = await AccountStakerInterestInDay.get(date_key);
             if (day_staker_record == undefined) {
-                day_staker_record = new AccountStakerInterestInDay(date_key);
-                day_staker_record.day = date.toLocaleDateString();
-                day_staker_record.pid = BigInt(pid.toString());
-                day_staker_record.accountid = accountid.toString();
-                day_staker_record.balance = staker_interest;
+                let day_staker_record1 = new AccountStakerInterestInDay(date_key);
+                day_staker_record1.day = date.toLocaleDateString();
+                day_staker_record1.pid = BigInt(pid.toString());
+                day_staker_record1.accountid = accountid.toString();
+                day_staker_record1.balance = staker_interest;
+                await day_staker_record1.save();
             } else {
                 day_staker_record.balance += staker_interest;
+                await day_staker_record.save();
             }
-            await block_staker_record.save();
-            await day_staker_record.save();
         }
     } else {
         let blockid = event.block.timestamp.toString();
@@ -241,7 +255,9 @@ export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
                 if (poolrecord.poolstakers == undefined) {
                     poolrecord.poolstakers = Array(dumpfile[i]["accountid"]);
                 } else {
-                    poolrecord.poolstakers.push(dumpfile[i]["accountid"]);
+                    if (!poolrecord.poolstakers.includes(dumpfile[i]["accountid"])) {
+                        poolrecord.poolstakers.push(dumpfile[i]["accountid"]);
+                    }
                 }
                 poolrecord.save();
             }
