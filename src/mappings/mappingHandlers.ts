@@ -186,7 +186,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
             block_staker_record.balance = staker_interest;
             let day_staker_record = await AccountStakerInterestInDay.get(date_key);
             if (day_staker_record == undefined) {
-                day_staker_record = new AccountStakerInterestInDay(block_key);
+                day_staker_record = new AccountStakerInterestInDay(date_key);
                 day_staker_record.day = date.toLocaleDateString();
                 day_staker_record.pid = BigInt(pid.toString());
                 day_staker_record.accountid = accountid.toString();
