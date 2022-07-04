@@ -1,0 +1,102 @@
+type PoolStakersShares @entity {
+
+  id: ID!
+
+  pid: BigInt @index
+
+  accountid: String @index
+
+  shares: BigInt
+
+
+
+}
+
+type PoolShares @entity {
+
+  id: ID!
+
+  shares: BigInt @index
+
+  poolstakers: [String]
+
+  owner: String @index
+
+
+}
+
+type AccountOwnerRewardInBlock @entity {
+
+  id: ID!
+
+  blockid: BigInt @index
+
+  pid: BigInt @index
+
+  accountid: String @index
+
+  balance: Float
+
+
+
+}
+
+
+type AccountStakerInterestInBlock @entity {
+
+  id: ID!
+
+  blockid: BigInt @index
+
+  pid: BigInt @index
+
+  accountid: String @index
+
+  balance: Float
+
+
+
+}
+
+type AccountOwnerRewardInDay @entity {
+
+  id: ID!
+
+  day: String @index
+
+  pid: BigInt @index
+
+  accountid: String @index
+
+  balance: Float
+
+
+
+}
+
+type AccountStakerInterestInDay @entity {
+
+  id: ID!
+
+  day: String @index
+
+  pid: BigInt @index
+
+  accountid: String @index
+
+  balance: Float
+
+
+
+}
+
+type ErrorRecord @entity {
+  id: ID!
+  
+  errortype: String @index
+
+  error: String @index
+
+  blockid: String @index
+
+}

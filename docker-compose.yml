@@ -1,0 +1,58 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:12-alpine
+    ports:
+      - "8816:8816"
+    expose:
+      - "8816"
+    command:
+      - -p 8816
+    volumes:
+      - .data/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD", "ls"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+  subquery-node:
+    image: onfinality/subql-node:latest
+    depends_on:
+      "postgres":
+        condition: service_healthy
+    restart: always
+    environment:
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_DATABASE: postgres
+      DB_HOST: postgres
+      DB_PORT: 8816
+    volumes:
+      - ./:/app
+    command:
+      - -f=/app
+      - --db-schema=app
+    healthcheck:
+      test: ["CMD", "ls"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  graphql-engine:
+    image: onfinality/subql-query:latest
+    ports:
+      - 3000:3000
+    restart: always
+    environment:
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_DATABASE: postgres
+      DB_HOST: postgres
+      DB_PORT: 8816
+    command:
+      - --name=app
+      - --playground
+      - --indexer=http://subquery-node:3000

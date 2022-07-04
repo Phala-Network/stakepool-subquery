@@ -1,0 +1,49 @@
+specVersion: 1.0.0
+name: subql-starter
+version: 1.0.0
+runner:
+  node:
+    name: '@subql/node'
+    version: '>=1.0.0'
+  query:
+    name: '@subql/query'
+    version: '*'
+description: "subquery for phala-stakepool"
+repository: 'https://github.com/Phala-Network/stakepool-subquery'
+schema:
+  file: ./schema.graphql
+network:
+  chainId:  '0xd43540ba6d3eb4897c28a77d48cb5b729fea37603cbbfc7a86a73b72adb3be8d'
+  endpoint: 'wss://khala.api.onfinality.io/public-ws'
+  dictionary: 'https://api.subquery.network/sq/subquery/khala-dictionary'
+dataSources:
+  - kind: substrate/Runtime
+    startBlock: 1878452
+    mapping:
+      file: ./dist/index.js
+      handlers:
+        - handler: handleContributionShareEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaStakePool
+            method: Contribution
+        - handler: handleWithdrawalShareEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaStakePool
+            method: Withdrawal
+        - handler: handleRewardReceivedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaStakePool
+            method: RewardReceived
+        - handler: handlePoolCreatedEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaStakePool
+            method: PoolCreated
+        - handler: handleDumpDataOnce
+          kind: substrate/BlockHandler
+
+
+
