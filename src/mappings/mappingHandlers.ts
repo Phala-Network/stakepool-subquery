@@ -235,7 +235,7 @@ export async function handlePoolCreatedEvent(event: SubstrateEvent): Promise<voi
 }
 
 export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
-    var once_timestamp = "1656398352095";
+    var once_timestamp = "1659079872680";
     if (once_timestamp == block.timestamp.getTime().toString()) {
         for (var i in pool) {
             let poolrecord = new PoolShares(i);
