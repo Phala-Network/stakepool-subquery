@@ -235,12 +235,12 @@ export async function handlePoolCreatedEvent(event: SubstrateEvent): Promise<voi
 }
 
 export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
-    var once_timestamp = "1659079872680";
+    var once_timestamp = "1659349656332";
     if (once_timestamp == block.timestamp.getTime().toString()) {
         for (var i in pool) {
             let poolrecord = new PoolShares(i);
             poolrecord.shares = BigInt(pool[i]["shares"]);
-            poolrecord.owner = pool[i]["owner"];
+            poolrecord.owner = pool[i]["accountid"];
             poolrecord.save();
         }
         for (let i = 0; i < dumpfile.length; i++) {
