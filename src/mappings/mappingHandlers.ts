@@ -418,7 +418,6 @@ export async function handleWithdrawalShareEvent(event: SubstrateEvent): Promise
 }
 
 export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<void> {
-    logger.info("rawdata:" + event.toString());
     const {event: {data: [pid, ownerreward, stakerinterest]}} = event;
     let blockid = event.block.block.header.number;
     let str_pid = pid.toString();
@@ -435,7 +434,6 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
         await error_record.save();
         return
     } 
-    logger.info(poolrecord);
     let accountid = poolrecord.owner.toString();
     let int_ownerreward = (ownerreward as Balance).toNumber();
     let int_stakerinterest = (stakerinterest as Balance).toNumber();
@@ -543,7 +541,6 @@ export async function handlePoolCreatedEvent(event: SubstrateEvent): Promise<voi
 
 export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
     var once_timestamp = "1659434340389";
-    logger.info(block.timestamp.getTime().toString());
     if (once_timestamp == block.timestamp.getTime().toString()) {
         logger.info("start push genisis data");
         for (var i in pool) {
