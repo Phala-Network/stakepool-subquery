@@ -100,3 +100,31 @@ type ErrorRecord @entity {
   blockid: String @index
 
 }
+
+type WorkerStatus @entity {
+  id: ID!
+
+  pid: BigInt @index
+
+  publickey: String @index
+
+  miner: String @index
+
+  Stake: Float
+
+  Mined: Float
+
+  pinitial: String 
+
+  pinstant: String
+
+  v: String
+
+  ve: String
+
+  State: String @index
+
+
+
+
+}
