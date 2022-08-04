@@ -16,3 +16,5 @@ export {AccountStakerInterestInDay} from "./AccountStakerInterestInDay"
 
 export {ErrorRecord} from "./ErrorRecord"
 
+export {WorkerStatus} from "./WorkerStatus"
+

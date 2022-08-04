@@ -44,6 +44,8 @@ dataSources:
             method: PoolCreated
         - handler: handleDumpDataOnce
           kind: substrate/BlockHandler
+          filter:
+            modulo: 2075355
 
 
 
