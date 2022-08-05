@@ -321,8 +321,9 @@ export async function handleBenchMarkUpdateEvent(event: SubstrateEvent): Promise
 export async function handleContributionShareEvent(event: SubstrateEvent): Promise<void> {
     const {event: {data: [pid, accountid, amount, share]}} = event;
     let hashkey  = blake2AsHex(String(pid) + ' ' + accountid);
-    let record = await PoolStakersShares.get(hashkey);
     let str_pid = pid.toString();
+    let res_cluster = await Promise.all([PoolStakersShares.get(hashkey), PoolShares.get(str_pid)]);
+    let record = res_cluster[0];
     let str_accountid = accountid.toString();
     let bigint_share = BigInt(share.toString());
     if (record == undefined) {
@@ -333,8 +334,7 @@ export async function handleContributionShareEvent(event: SubstrateEvent): Promi
     } else {
         record.shares += bigint_share;
     }
-    await record.save();
-    let poolrecord = await PoolShares.get(str_pid);
+    let poolrecord = res_cluster[1];
     if (poolrecord == undefined) {
         poolrecord = new PoolShares(str_pid);
         poolrecord.shares = bigint_share;     
@@ -348,7 +348,7 @@ export async function handleContributionShareEvent(event: SubstrateEvent): Promi
     if (!poolrecord.poolstakers.includes(str_accountid)) {
         poolrecord.poolstakers.push(str_accountid);
     }
-    await poolrecord.save();
+    await Promise.all([record.save(), poolrecord.save()]);
 }
 
 export async function handleWithdrawalShareEvent(event: SubstrateEvent): Promise<void> {
@@ -373,7 +373,6 @@ export async function handleWithdrawalShareEvent(event: SubstrateEvent): Promise
             await error_record.save();
             return
         }
-        await record.save();
         let poolrecord = await PoolShares.get(str_pid);
         if (poolrecord == undefined) {
             let blockid = event.block.timestamp.toString();
@@ -402,7 +401,7 @@ export async function handleWithdrawalShareEvent(event: SubstrateEvent): Promise
         if (record.shares == BigInt(0)) {
             poolrecord.poolstakers.splice(poolrecord.poolstakers.indexOf(str_accountid), 1);
         }
-        await poolrecord.save();
+        await Promise.all([record.save(), poolrecord.save()]);
     } else {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.StakerNotFound + ' ' + str_pid + ' ' + str_accountid);
