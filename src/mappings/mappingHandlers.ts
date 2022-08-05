@@ -437,85 +437,85 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
     let accountid = poolrecord.owner.toString();
     let int_ownerreward = (ownerreward as Balance).toNumber();
     let int_stakerinterest = (stakerinterest as Balance).toNumber();
+    let date = new Date();
+    let date_key = blake2AsHex(date.toLocaleDateString + ' ' + String(pid) + ' ' + accountid);
     
     let str_accountid = accountid.toString();
     let block_key = blake2AsHex(String(blockid) + ' ' + String(pid) + ' ' + accountid);
-    let block_owner_record = await AccountOwnerRewardInBlock.get(block_key);
+    let res_cluster = await Promise.all([AccountOwnerRewardInBlock.get(block_key), AccountOwnerRewardInDay.get(date_key)]);
+    let block_owner_record = res_cluster[0];
     if (block_owner_record == undefined) {
         let block_owner_record1 = new AccountOwnerRewardInBlock(block_key);
         block_owner_record1.blockid = BigInt(blockid.toString());
         block_owner_record1.pid = BigInt(pid.toString());
         block_owner_record1.accountid = accountid.toString();
         block_owner_record1.balance = int_ownerreward;
-        await block_owner_record1.save();
+        block_owner_record = block_owner_record1;
     } else {
         block_owner_record.balance += int_ownerreward;
-        await block_owner_record.save();
     }
-    
-    let date = new Date();
-    let date_key = blake2AsHex(date.toLocaleDateString + ' ' + String(pid) + ' ' + accountid);
-    let date_owner_record = await AccountOwnerRewardInDay.get(date_key);
+
+    let date_owner_record = res_cluster[1];
     if (date_owner_record == undefined) {
         let date_owner_record1 = new AccountOwnerRewardInDay(date_key);
         date_owner_record1.day = date.toLocaleDateString();
         date_owner_record1.pid = BigInt(pid.toString());
         date_owner_record1.accountid = accountid.toString();
         date_owner_record1.balance = int_ownerreward;
-        await date_owner_record1.save();
+        date_owner_record = date_owner_record1;
     } else {
         date_owner_record.balance += int_ownerreward;
-        await date_owner_record.save();
     }
-    
-    
-
+    await Promise.all([block_owner_record.save(), date_owner_record.save()]);
     if (poolrecord.shares > 0) {
-        for (var idx = 0; idx < poolrecord.poolstakers.length; idx++) {
-            let accountid = poolrecord.poolstakers[idx];
-            let user_key = blake2AsHex(String(pid) + ' ' + accountid);
-            let record = await PoolStakersShares.get(user_key);
-            if (record == undefined) {
-                let blockid = event.block.timestamp.toString();
-                let errorkey = blake2AsHex(blockid + ' ' + ErrorType.StakerNotFound + ' ' + str_pid + ' ' + str_accountid);
-                let error_record = new ErrorRecord(errorkey);
-                error_record.errortype = ErrorType.StakerNotFound;
-                let error_map = new Map();
-                error_map["pid"] = str_pid;
-                error_map["accountid"] = str_accountid;
-                error_record.blockid = blockid;
-                error_record.error = JSON.stringify(error_map);
-                await error_record.save();
-                return
-            }
-            let block_key = blake2AsHex(String(blockid) + String(pid) + ' ' + accountid);
-            let date_key = blake2AsHex(date.toLocaleDateString + String(pid) + ' ' + accountid);
-            let staker_interest = int_stakerinterest * parseFloat(record.shares.toString()) / parseFloat(poolrecord.shares.toString());
-            let block_staker_record = await AccountStakerInterestInBlock.get(block_key);
-            if (block_staker_record == undefined) {
-            let block_staker_record1 = new AccountStakerInterestInBlock(block_key);       
-                block_staker_record1.blockid = BigInt(blockid.toString());
-                block_staker_record1.pid = BigInt(pid.toString());
-                block_staker_record1.accountid = accountid.toString();
-                block_staker_record1.balance = staker_interest;
-                await block_staker_record1.save();
-            } else {
-                block_staker_record.balance += staker_interest;
-                await block_staker_record.save();
-            }
-            let day_staker_record = await AccountStakerInterestInDay.get(date_key);
-            if (day_staker_record == undefined) {
-                let day_staker_record1 = new AccountStakerInterestInDay(date_key);
-                day_staker_record1.day = date.toLocaleDateString();
-                day_staker_record1.pid = BigInt(pid.toString());
-                day_staker_record1.accountid = accountid.toString();
-                day_staker_record1.balance = staker_interest;
-                await day_staker_record1.save();
-            } else {
-                day_staker_record.balance += staker_interest;
-                await day_staker_record.save();
-            }
-        }
+        await Promise.all([...Array(poolrecord.poolstakers.length).keys()]
+            .map(async (idx) => {
+                let accountid = poolrecord.poolstakers[idx];
+                let user_key = blake2AsHex(String(pid) + ' ' + accountid);
+                let block_key = blake2AsHex(String(blockid) + String(pid) + ' ' + accountid);
+                let date_key = blake2AsHex(date.toLocaleDateString + String(pid) + ' ' + accountid);
+                let res_cluster = await Promise.all([PoolStakersShares.get(user_key), AccountStakerInterestInBlock.get(block_key), AccountStakerInterestInDay.get(date_key)]);
+                let record = res_cluster[0];
+                if (record == undefined) {
+                    let blockid = event.block.timestamp.toString();
+                    let errorkey = blake2AsHex(blockid + ' ' + ErrorType.StakerNotFound + ' ' + str_pid + ' ' + str_accountid);
+                    let error_record = new ErrorRecord(errorkey);
+                    error_record.errortype = ErrorType.StakerNotFound;
+                    let error_map = new Map();
+                    error_map["pid"] = str_pid;
+                    error_map["accountid"] = str_accountid;
+                    error_record.blockid = blockid;
+                    error_record.error = JSON.stringify(error_map);
+                    await error_record.save();
+                    return
+                }
+                
+                let staker_interest = int_stakerinterest * parseFloat(record.shares.toString()) / parseFloat(poolrecord.shares.toString());
+                let block_staker_record = res_cluster[1];
+                if (block_staker_record == undefined) {
+                let block_staker_record1 = new AccountStakerInterestInBlock(block_key);
+                    block_staker_record1.blockid = BigInt(blockid.toString());
+                    block_staker_record1.pid = BigInt(pid.toString());
+                    block_staker_record1.accountid = accountid.toString();
+                    block_staker_record1.balance = staker_interest;
+                    block_staker_record = block_staker_record1;
+                } else {
+                    block_staker_record.balance += staker_interest;
+                }
+                let day_staker_record = res_cluster[2];
+                if (day_staker_record == undefined) {
+                    let day_staker_record1 = new AccountStakerInterestInDay(date_key);
+                    day_staker_record1.day = date.toLocaleDateString();
+                    day_staker_record1.pid = BigInt(pid.toString());
+                    day_staker_record1.accountid = accountid.toString();
+                    day_staker_record1.balance = staker_interest;
+                    day_staker_record = day_staker_record1;
+                } else {
+                    day_staker_record.balance += staker_interest;
+                }
+                await Promise.all([block_staker_record.save(), day_staker_record.save()]);
+            })
+        );
     } else {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.PoolSharesLessThanZero + ' ' + str_pid);
@@ -540,8 +540,7 @@ export async function handlePoolCreatedEvent(event: SubstrateEvent): Promise<voi
 }
 
 export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
-    var once_timestamp = "1659434340389";
-    if (once_timestamp == block.timestamp.getTime().toString()) {
+    if (block.block.header.number.toNumber() === 2075355) {
         logger.info("start push genisis data");
         for (var i in pool) {
             let poolrecord = new PoolShares(i);
