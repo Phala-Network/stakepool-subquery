@@ -31,14 +31,14 @@ export async function handleAddWorkerEvent(event: SubstrateEvent): Promise<void>
     record.pid = BigInt(pid.toString());
     record.publickey = publickey.toString();
     record.miner = miner.toString();
-    record.save();
+    await record.save();
 }
 
 export async function handleRemoveWorkerEvent(event: SubstrateEvent): Promise<void> {
     const {event: {data: [pid, publickey]}} = event;
     let hashkey = blake2AsHex(String(pid) + ' ' + publickey);
     let record = new WorkerStatus(hashkey);
-    record.save();
+    await record.save();
 }
 // need new event
 export async function handleStartMiningEvent(event: SubstrateEvent): Promise<void> {
@@ -60,7 +60,7 @@ export async function handleStartMiningEvent(event: SubstrateEvent): Promise<voi
     }
     let float_amount = parseFloat(amount.toString());
     record.Stake = float_amount;
-    record.save();
+    await record.save();
 }
 
 export async function handleReclaimWorkerEvent(event: SubstrateEvent): Promise<void> {
@@ -86,7 +86,7 @@ export async function handleReclaimWorkerEvent(event: SubstrateEvent): Promise<v
     record.pinstant = "0";
     record.v = "0";
     record.ve = "0";
-    record.save();
+    await record.save();
 }
 
 export async function handleWorkerStartEvent(event: SubstrateEvent): Promise<void> {
@@ -120,7 +120,7 @@ export async function handleWorkerStartEvent(event: SubstrateEvent): Promise<voi
     record.ve = ve.toString();
     record.pinitial = pinitial.toString();
     record.State = MinerState.MiningIdle;
-    record.save();
+    await record.save();
 }
 
 export async function handleWorkerStopEvent(event: SubstrateEvent): Promise<void> {
@@ -152,7 +152,7 @@ export async function handleWorkerStopEvent(event: SubstrateEvent): Promise<void
     }
     let record = records[0];
     record.State = MinerState.MiningCoolingDown;
-    record.save();
+    await record.save();
 }
 
 export async function handleMinerBoundEvent(event: SubstrateEvent): Promise<void> {
@@ -184,7 +184,7 @@ export async function handleMinerBoundEvent(event: SubstrateEvent): Promise<void
     }
     let record = records[0];
     record.State = MinerState.Ready;
-    record.save();
+    await record.save();
 }
 
 export async function handleMinerEnterUnresponsiveEvent(event: SubstrateEvent): Promise<void> {
@@ -216,7 +216,7 @@ export async function handleMinerEnterUnresponsiveEvent(event: SubstrateEvent): 
     }
     let record = records[0];
     record.State = MinerState.MiningUnresponsive;
-    record.save();
+    await record.save();
 }
 
 export async function handlMinerExitUnresponsiveEvent(event: SubstrateEvent): Promise<void> {
@@ -248,7 +248,7 @@ export async function handlMinerExitUnresponsiveEvent(event: SubstrateEvent): Pr
     }
     let record = records[0]; 
     record.State = MinerState.MiningIdle;
-    record.save();
+    await record.save();
 }
 
 export async function handleOnRewardEvent(event: SubstrateEvent): Promise<void> {
@@ -282,7 +282,7 @@ export async function handleOnRewardEvent(event: SubstrateEvent): Promise<void> 
     let float_amount = parseFloat(amount.toString());
     record.v = v.toString();
     record.Mined += float_amount;
-    record.save();
+    await record.save();
 }
 
 // need new event
@@ -315,7 +315,7 @@ export async function handleBenchMarkUpdateEvent(event: SubstrateEvent): Promise
     }
     let record = records[0];
     record.pinstant = pinstant.toString();
-    record.save();
+    await record.save();
 }
 
 export async function handleContributionShareEvent(event: SubstrateEvent): Promise<void> {
@@ -482,7 +482,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
     let date_owner_record = res_cluster[1];
     if (date_owner_record == undefined) {
         let date_owner_record1 = new AccountOwnerRewardInDay(date_key);
-        date_owner_record1.day = date.toLocaleDateString();
+        date_owner_record1.day = date.toLocaleDateString(); 
         date_owner_record1.pid = BigInt(pid.toString());
         date_owner_record1.accountid = accountid.toString();
         date_owner_record1.balance = int_ownerreward;
@@ -636,3 +636,4 @@ export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
     }
     await costrecord.save();  
 }
+
