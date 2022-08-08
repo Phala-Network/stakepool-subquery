@@ -5,7 +5,6 @@ import {blake2AsHex} from '@polkadot/util-crypto';
 
 import dumpfile from "./dumpfile.json";
 import pool from "./pool.json";
-import { promiseTracker } from "@polkadot/api/promise/decorateMethod";
 
 enum ErrorType {
     PoolNotFound = "PoolNotFound",
@@ -324,7 +323,7 @@ export async function handleContributionShareEvent(event: SubstrateEvent): Promi
     const {event: {data: [pid, accountid, amount, share]}} = event;
     let hashkey  = blake2AsHex(String(pid) + ' ' + accountid);
     let str_pid = pid.toString();
-    let res_cluster = await Promise.all([await PoolStakersShares.get(hashkey), await PoolShares.get(str_pid)]);
+    let res_cluster = await Promise.all([PoolStakersShares.get(hashkey), PoolShares.get(str_pid)]);
     let record = res_cluster[0];
     let str_accountid = accountid.toString();
     let bigint_share = BigInt(share.toString());
