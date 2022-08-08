@@ -5,6 +5,7 @@ import {blake2AsHex} from '@polkadot/util-crypto';
 
 import dumpfile from "./dumpfile.json";
 import pool from "./pool.json";
+import { promiseTracker } from "@polkadot/api/promise/decorateMethod";
 
 enum ErrorType {
     PoolNotFound = "PoolNotFound",
@@ -31,14 +32,14 @@ export async function handleAddWorkerEvent(event: SubstrateEvent): Promise<void>
     record.pid = BigInt(pid.toString());
     record.publickey = publickey.toString();
     record.miner = miner.toString();
-    record.save();
+    await record.save();
 }
 
 export async function handleRemoveWorkerEvent(event: SubstrateEvent): Promise<void> {
     const {event: {data: [pid, publickey]}} = event;
     let hashkey = blake2AsHex(String(pid) + ' ' + publickey);
     let record = new WorkerStatus(hashkey);
-    record.save();
+    await record.save();
 }
 // need new event
 export async function handleStartMiningEvent(event: SubstrateEvent): Promise<void> {
@@ -60,7 +61,7 @@ export async function handleStartMiningEvent(event: SubstrateEvent): Promise<voi
     }
     let float_amount = parseFloat(amount.toString());
     record.Stake = float_amount;
-    record.save();
+    await record.save();
 }
 
 export async function handleReclaimWorkerEvent(event: SubstrateEvent): Promise<void> {
@@ -86,7 +87,7 @@ export async function handleReclaimWorkerEvent(event: SubstrateEvent): Promise<v
     record.pinstant = "0";
     record.v = "0";
     record.ve = "0";
-    record.save();
+    await record.save();
 }
 
 export async function handleWorkerStartEvent(event: SubstrateEvent): Promise<void> {
@@ -120,7 +121,7 @@ export async function handleWorkerStartEvent(event: SubstrateEvent): Promise<voi
     record.ve = ve.toString();
     record.pinitial = pinitial.toString();
     record.State = MinerState.MiningIdle;
-    record.save();
+    await record.save();
 }
 
 export async function handleWorkerStopEvent(event: SubstrateEvent): Promise<void> {
@@ -152,7 +153,7 @@ export async function handleWorkerStopEvent(event: SubstrateEvent): Promise<void
     }
     let record = records[0];
     record.State = MinerState.MiningCoolingDown;
-    record.save();
+    await record.save();
 }
 
 export async function handleMinerBoundEvent(event: SubstrateEvent): Promise<void> {
@@ -184,7 +185,7 @@ export async function handleMinerBoundEvent(event: SubstrateEvent): Promise<void
     }
     let record = records[0];
     record.State = MinerState.Ready;
-    record.save();
+    await record.save();
 }
 
 export async function handleMinerEnterUnresponsiveEvent(event: SubstrateEvent): Promise<void> {
@@ -216,7 +217,7 @@ export async function handleMinerEnterUnresponsiveEvent(event: SubstrateEvent): 
     }
     let record = records[0];
     record.State = MinerState.MiningUnresponsive;
-    record.save();
+    await record.save();
 }
 
 export async function handlMinerExitUnresponsiveEvent(event: SubstrateEvent): Promise<void> {
@@ -248,7 +249,7 @@ export async function handlMinerExitUnresponsiveEvent(event: SubstrateEvent): Pr
     }
     let record = records[0]; 
     record.State = MinerState.MiningIdle;
-    record.save();
+    await record.save();
 }
 
 export async function handleOnRewardEvent(event: SubstrateEvent): Promise<void> {
@@ -282,7 +283,7 @@ export async function handleOnRewardEvent(event: SubstrateEvent): Promise<void> 
     let float_amount = parseFloat(amount.toString());
     record.v = v.toString();
     record.Mined += float_amount;
-    record.save();
+    await record.save();
 }
 
 // need new event
@@ -315,7 +316,7 @@ export async function handleBenchMarkUpdateEvent(event: SubstrateEvent): Promise
     }
     let record = records[0];
     record.pinstant = pinstant.toString();
-    record.save();
+    await record.save();
 }
 
 export async function handleContributionShareEvent(event: SubstrateEvent): Promise<void> {
@@ -323,7 +324,7 @@ export async function handleContributionShareEvent(event: SubstrateEvent): Promi
     const {event: {data: [pid, accountid, amount, share]}} = event;
     let hashkey  = blake2AsHex(String(pid) + ' ' + accountid);
     let str_pid = pid.toString();
-    let res_cluster = await Promise.all([PoolStakersShares.get(hashkey), PoolShares.get(str_pid)]);
+    let res_cluster = await Promise.all([await PoolStakersShares.get(hashkey), await PoolShares.get(str_pid)]);
     let record = res_cluster[0];
     let str_accountid = accountid.toString();
     let bigint_share = BigInt(share.toString());
@@ -349,7 +350,7 @@ export async function handleContributionShareEvent(event: SubstrateEvent): Promi
     if (!poolrecord.poolstakers.includes(str_accountid)) {
         poolrecord.poolstakers.push(str_accountid);
     }
-    await Promise.all([record.save(), poolrecord.save()]);
+    await Promise.all([await record.save(), await poolrecord.save()]);
     let end_time = new Date().getTime();
     let costrecord = await CostStatistic.get("handleContributionShareEvent");
     if (costrecord == undefined) {
@@ -442,6 +443,7 @@ export async function handleWithdrawalShareEvent(event: SubstrateEvent): Promise
 
 export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<void> {
     let start_time = new Date().getTime();
+    let start_time1 = new Date().getTime();
     const {event: {data: [pid, ownerreward, stakerinterest]}} = event;
     let blockid = event.block.block.header.number;
     let str_pid = pid.toString();
@@ -466,7 +468,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
     
     let str_accountid = accountid.toString();
     let block_key = blake2AsHex(String(blockid) + ' ' + String(pid) + ' ' + accountid);
-    let res_cluster = await Promise.all([AccountOwnerRewardInBlock.get(block_key), AccountOwnerRewardInDay.get(date_key)]);
+    let res_cluster = await Promise.all([await AccountOwnerRewardInBlock.get(block_key), await AccountOwnerRewardInDay.get(date_key)]);
     let block_owner_record = res_cluster[0];
     if (block_owner_record == undefined) {
         let block_owner_record1 = new AccountOwnerRewardInBlock(block_key);
@@ -482,7 +484,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
     let date_owner_record = res_cluster[1];
     if (date_owner_record == undefined) {
         let date_owner_record1 = new AccountOwnerRewardInDay(date_key);
-        date_owner_record1.day = date.toLocaleDateString();
+        date_owner_record1.day = date.toLocaleDateString(); 
         date_owner_record1.pid = BigInt(pid.toString());
         date_owner_record1.accountid = accountid.toString();
         date_owner_record1.balance = int_ownerreward;
@@ -493,13 +495,13 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
     let time_cost_arr = Array();
     await Promise.all([block_owner_record.save(), date_owner_record.save()]);
     if (poolrecord.shares > 0) {
-        await Promise.all([...Array(poolrecord.poolstakers.length).keys()]
+        await Promise.all([... Array(poolrecord.poolstakers.length).keys()]
             .map(async (idx) => {
                 let accountid = poolrecord.poolstakers[idx];
                 let user_key = blake2AsHex(String(pid) + ' ' + accountid);
                 let block_key = blake2AsHex(String(blockid) + String(pid) + ' ' + accountid);
                 let date_key = blake2AsHex(date.toLocaleDateString + String(pid) + ' ' + accountid);
-                let res_cluster = await Promise.all([PoolStakersShares.get(user_key), AccountStakerInterestInBlock.get(block_key), AccountStakerInterestInDay.get(date_key)]);
+                let res_cluster = await Promise.all([(PoolStakersShares.get(user_key)), AccountStakerInterestInBlock.get(block_key), AccountStakerInterestInDay.get(date_key)]);
                 let record = res_cluster[0];
                 if (record == undefined) {
                     let blockid = event.block.timestamp.toString();
@@ -542,6 +544,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
                 await Promise.all([block_staker_record.save(), day_staker_record.save()]);
                 let end_time = new Date().getTime();
                 time_cost_arr.push(BigInt(end_time - start_time));
+                logger.info("in route" + start_time1);
             })
         );
     } else {
@@ -583,6 +586,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
         costrecord.totalcost += BigInt(end_time - start_time);
     }
     await costrecord.save();  
+    logger.info("end route" + start_time1);
 }
 
 export async function handlePoolCreatedEvent(event: SubstrateEvent): Promise<void> {
@@ -636,3 +640,4 @@ export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
     }
     await costrecord.save();  
 }
+
