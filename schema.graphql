@@ -128,3 +128,11 @@ type WorkerStatus @entity {
 
 
 }
+
+type CostStatistic @entity {
+  id: ID!
+
+  frequency: BigInt
+
+  totalcost: BigInt@index
+}

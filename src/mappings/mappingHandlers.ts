@@ -1,5 +1,5 @@
 import {SubstrateExtrinsic,SubstrateEvent,SubstrateBlock} from "@subql/types";
-import {PoolStakersShares,AccountOwnerRewardInBlock,AccountStakerInterestInBlock,AccountOwnerRewardInDay,AccountStakerInterestInDay, PoolShares, ErrorRecord, WorkerStatus} from "../types";
+import {PoolStakersShares,AccountOwnerRewardInBlock,AccountStakerInterestInBlock,AccountOwnerRewardInDay,AccountStakerInterestInDay, PoolShares, ErrorRecord, WorkerStatus, CostStatistic} from "../types";
 import {Balance} from "@polkadot/types/interfaces";
 import {blake2AsHex} from '@polkadot/util-crypto';
 
@@ -319,6 +319,7 @@ export async function handleBenchMarkUpdateEvent(event: SubstrateEvent): Promise
 }
 
 export async function handleContributionShareEvent(event: SubstrateEvent): Promise<void> {
+    let start_time = new Date().getTime();
     const {event: {data: [pid, accountid, amount, share]}} = event;
     let hashkey  = blake2AsHex(String(pid) + ' ' + accountid);
     let str_pid = pid.toString();
@@ -349,9 +350,21 @@ export async function handleContributionShareEvent(event: SubstrateEvent): Promi
         poolrecord.poolstakers.push(str_accountid);
     }
     await Promise.all([record.save(), poolrecord.save()]);
+    let end_time = new Date().getTime();
+    let costrecord = await CostStatistic.get("handleContributionShareEvent");
+    if (costrecord == undefined) {
+        costrecord = new CostStatistic("handleContributionShareEvent");
+        costrecord.frequency = BigInt(1);
+        costrecord.totalcost = BigInt(end_time - start_time);
+    } else {
+        costrecord.frequency += BigInt(1);
+        costrecord.totalcost += BigInt(end_time - start_time);
+    }
+    await costrecord.save();  
 }
 
 export async function handleWithdrawalShareEvent(event: SubstrateEvent): Promise<void> {
+    let start_time = new Date().getTime();
     const {event: {data: [pid, accountid, amount, share]}} = event;
     let hashkey  = blake2AsHex(String(pid) + ' ' + accountid);
     let str_pid = pid.toString();
@@ -414,9 +427,21 @@ export async function handleWithdrawalShareEvent(event: SubstrateEvent): Promise
         error_record.error = JSON.stringify(error_map);
         await error_record.save();
     }
+    let end_time = new Date().getTime();
+    let costrecord = await CostStatistic.get("handleWithdrawalShareEvent");
+    if (costrecord == undefined) {
+        costrecord = new CostStatistic("handleWithdrawalShareEvent");
+        costrecord.frequency = BigInt(1);
+        costrecord.totalcost = BigInt(end_time - start_time);
+    } else {
+        costrecord.frequency += BigInt(1);
+        costrecord.totalcost += BigInt(end_time - start_time);
+    }
+    await costrecord.save();  
 }
 
 export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<void> {
+    let start_time = new Date().getTime();
     const {event: {data: [pid, ownerreward, stakerinterest]}} = event;
     let blockid = event.block.block.header.number;
     let str_pid = pid.toString();
@@ -465,6 +490,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
     } else {
         date_owner_record.balance += int_ownerreward;
     }
+    let time_cost_arr = Array();
     await Promise.all([block_owner_record.save(), date_owner_record.save()]);
     if (poolrecord.shares > 0) {
         await Promise.all([...Array(poolrecord.poolstakers.length).keys()]
@@ -512,7 +538,10 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
                 } else {
                     day_staker_record.balance += staker_interest;
                 }
+                let start_time = new Date().getTime();
                 await Promise.all([block_staker_record.save(), day_staker_record.save()]);
+                let end_time = new Date().getTime();
+                time_cost_arr.push(BigInt(end_time - start_time));
             })
         );
     } else {
@@ -527,6 +556,33 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
         await error_record.save();
         return
     }
+    {
+        let total_cost = BigInt(0);
+        for (let i = 0; i < time_cost_arr.length; i++) {
+            total_cost += time_cost_arr[i];
+        }
+        let costrecord = await CostStatistic.get("multi-rpc-cost");
+        if (costrecord == undefined) {
+            costrecord = new CostStatistic("multi-rpc-cost");
+            costrecord.frequency = BigInt(time_cost_arr.length);
+            costrecord.totalcost = total_cost;
+        } else {
+            costrecord.frequency += BigInt(time_cost_arr.length);
+            costrecord.totalcost += total_cost;
+        }
+        await costrecord.save();  
+    }
+    let end_time = new Date().getTime();
+    let costrecord = await CostStatistic.get("handleRewardReceivedEvent");
+    if (costrecord == undefined) {
+        costrecord = new CostStatistic("handleRewardReceivedEvent");
+        costrecord.frequency = BigInt(1);
+        costrecord.totalcost = BigInt(end_time - start_time);
+    } else {
+        costrecord.frequency += BigInt(1);
+        costrecord.totalcost += BigInt(end_time - start_time);
+    }
+    await costrecord.save();  
 }
 
 export async function handlePoolCreatedEvent(event: SubstrateEvent): Promise<void> {
@@ -539,13 +595,14 @@ export async function handlePoolCreatedEvent(event: SubstrateEvent): Promise<voi
 }
 
 export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
+    let start_time = new Date().getTime();
     if (block.block.header.number.toNumber() === 2075355) {
         logger.info("start push genisis data");
         for (var i in pool) {
             let poolrecord = new PoolShares(i);
             poolrecord.shares = BigInt(pool[i]["shares"]);
             poolrecord.owner = pool[i]["owner"];
-            poolrecord.save();
+            await poolrecord.save();
         }
         for (let i = 0; i < dumpfile.length; i++) {
             let hashkey  = blake2AsHex(dumpfile[i]["pid"] + ' ' + dumpfile[i]["accountid"]);
@@ -553,7 +610,7 @@ export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
             record.pid = BigInt(dumpfile[i]["pid"]);
             record.accountid = dumpfile[i]["accountid"];
             record.shares = BigInt(dumpfile[i]["shares"]);
-            record.save();
+            await record.save();
             let poolrecord = await PoolShares.get(dumpfile[i]["pid"]);
             if (poolrecord != undefined) {
                 if (poolrecord.poolstakers == undefined) {
@@ -563,9 +620,19 @@ export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
                         poolrecord.poolstakers.push(dumpfile[i]["accountid"]);
                     }
                 }
-                poolrecord.save();
+                await poolrecord.save();
             }
        }
-  }
-
+    }
+    let end_time = new Date().getTime();
+    let costrecord = await CostStatistic.get("handleDumpDataOnce");
+    if (costrecord == undefined) {
+        costrecord = new CostStatistic("handleDumpDataOnce");
+        costrecord.frequency = BigInt(1);
+        costrecord.totalcost = BigInt(end_time - start_time);
+    } else {
+        costrecord.frequency += BigInt(1);
+        costrecord.totalcost += BigInt(end_time - start_time);
+    }
+    await costrecord.save();  
 }
