@@ -443,7 +443,6 @@ export async function handleWithdrawalShareEvent(event: SubstrateEvent): Promise
 
 export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<void> {
     let start_time = new Date().getTime();
-    let start_time1 = new Date().getTime();
     const {event: {data: [pid, ownerreward, stakerinterest]}} = event;
     let blockid = event.block.block.header.number;
     let str_pid = pid.toString();
@@ -468,7 +467,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
     
     let str_accountid = accountid.toString();
     let block_key = blake2AsHex(String(blockid) + ' ' + String(pid) + ' ' + accountid);
-    let res_cluster = await Promise.all([await AccountOwnerRewardInBlock.get(block_key), await AccountOwnerRewardInDay.get(date_key)]);
+    let res_cluster = await Promise.all([AccountOwnerRewardInBlock.get(block_key), AccountOwnerRewardInDay.get(date_key)]);
     let block_owner_record = res_cluster[0];
     if (block_owner_record == undefined) {
         let block_owner_record1 = new AccountOwnerRewardInBlock(block_key);
@@ -501,7 +500,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
                 let user_key = blake2AsHex(String(pid) + ' ' + accountid);
                 let block_key = blake2AsHex(String(blockid) + String(pid) + ' ' + accountid);
                 let date_key = blake2AsHex(date.toLocaleDateString + String(pid) + ' ' + accountid);
-                let res_cluster = await Promise.all([(PoolStakersShares.get(user_key)), AccountStakerInterestInBlock.get(block_key), AccountStakerInterestInDay.get(date_key)]);
+                let res_cluster = await Promise.all([PoolStakersShares.get(user_key), AccountStakerInterestInBlock.get(block_key), AccountStakerInterestInDay.get(date_key)]);
                 let record = res_cluster[0];
                 if (record == undefined) {
                     let blockid = event.block.timestamp.toString();
@@ -544,7 +543,6 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
                 await Promise.all([block_staker_record.save(), day_staker_record.save()]);
                 let end_time = new Date().getTime();
                 time_cost_arr.push(BigInt(end_time - start_time));
-                logger.info("in route" + start_time1);
             })
         );
     } else {
@@ -586,7 +584,6 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
         costrecord.totalcost += BigInt(end_time - start_time);
     }
     await costrecord.save();  
-    logger.info("end route" + start_time1);
 }
 
 export async function handlePoolCreatedEvent(event: SubstrateEvent): Promise<void> {
