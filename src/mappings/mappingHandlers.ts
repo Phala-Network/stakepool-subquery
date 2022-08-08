@@ -349,7 +349,7 @@ export async function handleContributionShareEvent(event: SubstrateEvent): Promi
     if (!poolrecord.poolstakers.includes(str_accountid)) {
         poolrecord.poolstakers.push(str_accountid);
     }
-    await Promise.all([await record.save(), await poolrecord.save()]);
+    await Promise.all([record.save(), poolrecord.save()]);
     let end_time = new Date().getTime();
     let costrecord = await CostStatistic.get("handleContributionShareEvent");
     if (costrecord == undefined) {
