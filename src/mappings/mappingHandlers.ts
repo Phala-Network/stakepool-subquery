@@ -596,7 +596,7 @@ export async function handlePoolCreatedEvent(event: SubstrateEvent): Promise<voi
 
 export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
     let start_time = new Date().getTime();
-    if (block.block.header.number.toNumber() === 2075355) {
+    if (block.block.header.number.toNumber() === 2118730) {
         logger.info("start push genisis data");
         for (var i in pool) {
             let poolrecord = new PoolShares(i);
