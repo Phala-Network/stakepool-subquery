@@ -110,9 +110,9 @@ type WorkerStatus @entity {
 
   miner: String @index
 
-  Stake: Float
+  Stake: String
 
-  Mined: Float
+  Mined: String
 
   pinitial: String 
 
