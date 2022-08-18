@@ -5,6 +5,7 @@ import {blake2AsHex} from '@polkadot/util-crypto';
 
 import dumpfile from "./dumpfile.json";
 import pool from "./pool.json";
+import worker from "./worker.json";
 
 enum ErrorType {
     PoolNotFound = "PoolNotFound",
@@ -92,7 +93,7 @@ export async function handleReclaimWorkerEvent(event: SubstrateEvent): Promise<v
 export async function handleWorkerStartEvent(event: SubstrateEvent): Promise<void> {
     const {event: {data: [publickey, ve, pinitial]}} = event;
     let records = await WorkerStatus.getByPublickey(publickey.toString());
-    if (records == undefined) {
+    if (records[0] == undefined) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.WorkerNotFound + ' ' + String(publickey));
         let error_record = new ErrorRecord(errorkey);
@@ -104,7 +105,7 @@ export async function handleWorkerStartEvent(event: SubstrateEvent): Promise<voi
         await error_record.save();
         return
     }
-    if (records.length != 1) {
+    if (records.length > 1) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.DublicateWorkers + ' ' + String(publickey));
         let error_record = new ErrorRecord(errorkey);
@@ -126,7 +127,7 @@ export async function handleWorkerStartEvent(event: SubstrateEvent): Promise<voi
 export async function handleWorkerStopEvent(event: SubstrateEvent): Promise<void> {
     const {event: {data: [miner]}} = event;
     let records = await WorkerStatus.getByMiner(miner.toString());
-    if (records == undefined) {
+    if (records[0] == undefined) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.WorkerNotFound + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -138,7 +139,7 @@ export async function handleWorkerStopEvent(event: SubstrateEvent): Promise<void
         await error_record.save();
         return
     }
-    if (records.length != 1) {
+    if (records.length > 1) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.DublicateWorkers + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -158,7 +159,7 @@ export async function handleWorkerStopEvent(event: SubstrateEvent): Promise<void
 export async function handleMinerBoundEvent(event: SubstrateEvent): Promise<void> {
     const {event: {data: [miner]}} = event;
     let records = await WorkerStatus.getByMiner(miner.toString());
-    if (records == undefined) {
+    if (records[0] == undefined) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.WorkerNotFound + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -170,7 +171,7 @@ export async function handleMinerBoundEvent(event: SubstrateEvent): Promise<void
         await error_record.save();
         return
     }
-    if (records.length != 1) {
+    if (records.length > 1) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.DublicateWorkers + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -190,7 +191,7 @@ export async function handleMinerBoundEvent(event: SubstrateEvent): Promise<void
 export async function handleMinerEnterUnresponsiveEvent(event: SubstrateEvent): Promise<void> {
     const {event: {data: [miner]}} = event;
     let records = await WorkerStatus.getByMiner(miner.toString());
-    if (records == undefined) {
+    if (records[0] == undefined) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.WorkerNotFound + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -202,7 +203,7 @@ export async function handleMinerEnterUnresponsiveEvent(event: SubstrateEvent): 
         await error_record.save();
         return
     }
-    if (records.length != 1) {
+    if (records.length > 1) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.DublicateWorkers + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -222,7 +223,7 @@ export async function handleMinerEnterUnresponsiveEvent(event: SubstrateEvent): 
 export async function handlMinerExitUnresponsiveEvent(event: SubstrateEvent): Promise<void> {
     const {event: {data: [miner]}} = event;
     let records = await WorkerStatus.getByMiner(miner.toString());
-    if (records == undefined) {
+    if (records[0] == undefined) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.WorkerNotFound + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -234,7 +235,7 @@ export async function handlMinerExitUnresponsiveEvent(event: SubstrateEvent): Pr
         await error_record.save();
         return
     }
-    if (records.length != 1) {
+    if (records.length > 1) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.DublicateWorkers + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -254,7 +255,7 @@ export async function handlMinerExitUnresponsiveEvent(event: SubstrateEvent): Pr
 export async function handleOnRewardEvent(event: SubstrateEvent): Promise<void> {
     const {event: {data: [miner, v, amount]}} = event;
     let records = await WorkerStatus.getByMiner(miner.toString());
-    if (records == undefined) {
+    if (records[0] == undefined) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.WorkerNotFound + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -266,7 +267,7 @@ export async function handleOnRewardEvent(event: SubstrateEvent): Promise<void> 
         await error_record.save();
         return
     }
-    if (records.length != 1) {
+    if (records.length > 1) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.DublicateWorkers + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -288,8 +289,9 @@ export async function handleOnRewardEvent(event: SubstrateEvent): Promise<void> 
 // need new event
 export async function handleBenchMarkUpdateEvent(event: SubstrateEvent): Promise<void> {
     const {event: {data: [miner, pinstant]}} = event;
+    let p = pinstant.toString();
     let records = await WorkerStatus.getByMiner(miner.toString());
-    if (records == undefined) {
+    if (records[0] == undefined) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.WorkerNotFound + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -301,7 +303,7 @@ export async function handleBenchMarkUpdateEvent(event: SubstrateEvent): Promise
         await error_record.save();
         return
     }
-    if (records.length != 1) {
+    if (records.length > 1) {
         let blockid = event.block.timestamp.toString();
         let errorkey = blake2AsHex(blockid + ' ' + ErrorType.DublicateWorkers + ' ' + String(miner));
         let error_record = new ErrorRecord(errorkey);
@@ -312,9 +314,9 @@ export async function handleBenchMarkUpdateEvent(event: SubstrateEvent): Promise
         error_record.error = JSON.stringify(error_map);
         await error_record.save();
         return
-    }
+    }    
     let record = records[0];
-    record.pinstant = pinstant.toString();
+    record.pinstant = p;
     await record.save();
     
 }
@@ -647,6 +649,24 @@ export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
             poolrecord.shares = BigInt(pool[i]["shares"]);
             poolrecord.owner = pool[i]["owner"];
             await poolrecord.save();
+        }
+        for (var i in pool) {
+            let input = worker[i];
+            let hashkey = blake2AsHex(String(input["pid"]) + ' ' + input["publickey"]);
+            let workerrecord = new WorkerStatus(hashkey);
+            workerrecord.Mined = input["Mined"];
+            workerrecord.Stake = input["Stake"];
+            workerrecord.State = input["State"];
+            workerrecord.miner = input["miner"];
+            if (input["pid"] != undefined) {
+                workerrecord.pid = BigInt(input["pid"]);
+            }
+            workerrecord.pinitial = input["pinitial"];
+            workerrecord.pinstant = input["pinstant"];
+            workerrecord.publickey = input["publickey"];
+            workerrecord.v = input["v"];
+            workerrecord.ve = input["ve"];
+            await workerrecord.save();
         }
         for (let i = 0; i < dumpfile.length; i++) {
             let hashkey  = blake2AsHex(dumpfile[i]["pid"] + ' ' + dumpfile[i]["accountid"]);
