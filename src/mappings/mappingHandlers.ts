@@ -495,7 +495,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
         let int_ownerreward = (ownerreward as Balance).toNumber();
         let int_stakerinterest = (stakerinterest as Balance).toNumber();
         let date = new Date();
-        let date_key = blake2AsHex(date.toLocaleDateString + ' ' + String(pid) + ' ' + accountid);
+        let date_key = blake2AsHex(date.toLocaleDateString() + ' ' + String(pid) + ' ' + accountid);
         
         let str_accountid = accountid.toString();
         let block_key = blake2AsHex(String(blockid) + ' ' + String(pid) + ' ' + accountid);
@@ -531,7 +531,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
                     let accountid = poolrecord.poolstakers[idx];
                     let user_key = blake2AsHex(String(pid) + ' ' + accountid);
                     let block_key = blake2AsHex(String(blockid) + String(pid) + ' ' + accountid);
-                    let date_key = blake2AsHex(date.toLocaleDateString + String(pid) + ' ' + accountid);
+                    let date_key = blake2AsHex(date.toLocaleDateString() + String(pid) + ' ' + accountid);
                     let res_cluster = await Promise.all([PoolStakersShares.get(user_key), AccountStakerInterestInBlock.get(block_key), AccountStakerInterestInDay.get(date_key)]);
                     let record = res_cluster[0];
                     if (record == undefined) {
@@ -642,7 +642,7 @@ export async function handlePoolCreatedEvent(event: SubstrateEvent): Promise<voi
 
 export async function handleDumpDataOnce(block: SubstrateBlock): Promise<void> {
     let start_time = new Date().getTime();
-    if (block.block.header.number.toNumber() === 2153296) {
+    if (block.block.header.number.toNumber() === 2187506) {
         logger.info("start push genisis data");
         for (var i in pool) {
             let poolrecord = new PoolShares(i);
