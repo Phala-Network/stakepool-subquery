@@ -35,7 +35,7 @@ type AccountOwnerRewardInBlock @entity {
 
   accountid: String @index
 
-  balance: Float
+  balance: BigInt
 
 
 
@@ -52,7 +52,7 @@ type AccountStakerInterestInBlock @entity {
 
   accountid: String @index
 
-  balance: Float
+  balance: BigInt
 
 
 
@@ -68,9 +68,23 @@ type AccountOwnerRewardInDay @entity {
 
   accountid: String @index
 
-  balance: Float
+  balance: BigInt
 
+}
 
+type EventRecord @entity {
+
+  id: ID!
+
+  second: String @index
+
+  minute: String @index
+
+  hour: String @index
+
+  day: String @index
+
+  event: String @index
 
 }
 
@@ -84,7 +98,7 @@ type AccountStakerInterestInDay @entity {
 
   accountid: String @index
 
-  balance: Float
+  balance: BigInt
 
 
 

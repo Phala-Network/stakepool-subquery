@@ -18,10 +18,65 @@ network:
   dictionary: 'https://api.subquery.network/sq/subquery/khala-dictionary'
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 2187506
+    startBlock: 2233916
     mapping:
       file: ./dist/index.js
       handlers:
+        - handler: handleAddWorkerEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaStakePool
+            method: PoolWorkerAdded
+        - handler: handleRemoveWorkerEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaStakePool
+            method: PoolWorkerRemoved
+        - handler: handleStartMiningEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaStakePool
+            method: MiningStarted
+        - handler: handleReclaimWorkerEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaStakePool
+            method: WorkerReclaimed
+        - handler: handleWorkerStartEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaMining
+            method: MinerStarted
+        - handler: handleWorkerStopEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaMining
+            method: MinerStopped
+        - handler: handleMinerBoundEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaMining
+            method: MinerBound
+        - handler: handleMinerEnterUnresponsiveEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaMining
+            method: MinerEnterUnresponsive
+        - handler: handlMinerExitUnresponsiveEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaMining
+            method: MinerExitUnresponsive
+        - handler: handleOnRewardEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaMining
+            method: MinerSettled
+        - handler: handleBenchMarkUpdateEvent
+          kind: substrate/EventHandler
+          filter:
+            module: phalaMining
+            method: BenchmarkUpdated
         - handler: handleContributionShareEvent
           kind: substrate/EventHandler
           filter:
@@ -45,7 +100,7 @@ dataSources:
         - handler: handleDumpDataOnce
           kind: substrate/BlockHandler
           filter:
-            modulo: 2187506
+            modulo: 2233916
 
 
 
