@@ -528,7 +528,6 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
         if (poolrecord.shares > 0) {
             await Promise.all([...Array(poolrecord.poolstakers.length).keys()]
                 .map(async (idx) => {
-                    logger.info("here");
                     let accountid = poolrecord.poolstakers[idx];
                     let user_key = blake2AsHex(String(pid) + ' ' + accountid);
                     let block_key = blake2AsHex(String(blockid) + String(pid) + ' ' + accountid);
