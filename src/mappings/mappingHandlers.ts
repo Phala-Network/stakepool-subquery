@@ -511,7 +511,7 @@ export async function handleRewardReceivedEvent(event: SubstrateEvent): Promise<
         } else {
             block_owner_record.balance += int_ownerreward;
         }
-    
+        logger.info(date.getDate() + " " + date.getHours());
         let date_owner_record = res_cluster[1];
         if (date_owner_record == undefined) {
             let date_owner_record1 = new AccountOwnerRewardInDay(date_key);
