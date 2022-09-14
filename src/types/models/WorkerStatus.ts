@@ -22,9 +22,9 @@ export class WorkerStatus implements Entity {
 
     public miner?: string;
 
-    public Stake?: number;
+    public Stake?: string;
 
-    public Mined?: number;
+    public Mined?: string;
 
     public pinitial?: string;
 
