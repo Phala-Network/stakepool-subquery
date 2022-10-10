@@ -12,9 +12,13 @@ export {AccountStakerInterestInBlock} from "./AccountStakerInterestInBlock"
 
 export {AccountOwnerRewardInDay} from "./AccountOwnerRewardInDay"
 
+export {EventRecord} from "./EventRecord"
+
 export {AccountStakerInterestInDay} from "./AccountStakerInterestInDay"
 
 export {ErrorRecord} from "./ErrorRecord"
 
 export {WorkerStatus} from "./WorkerStatus"
+
+export {CostStatistic} from "./CostStatistic"
 

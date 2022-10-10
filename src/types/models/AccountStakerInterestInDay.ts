@@ -22,7 +22,7 @@ export class AccountStakerInterestInDay implements Entity {
 
     public accountid?: string;
 
-    public balance?: number;
+    public balance?: bigint;
 
 
     async save(): Promise<void>{
