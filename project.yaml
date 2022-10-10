@@ -18,7 +18,7 @@ network:
   dictionary: 'https://api.subquery.network/sq/subquery/khala-dictionary'
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 2233916
+    startBlock: 2486396
     mapping:
       file: ./dist/index.js
       handlers:
@@ -45,7 +45,7 @@ dataSources:
         - handler: handleDumpDataOnce
           kind: substrate/BlockHandler
           filter:
-            modulo: 2233916
+            modulo: 2486396
 
 
 
